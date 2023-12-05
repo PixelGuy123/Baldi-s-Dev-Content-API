@@ -2,6 +2,8 @@
 using UnityEngine;
 using MTM101BaldAPI.Reflection;
 using MTM101BaldAPI;
+using System;
+using System.Linq;
 
 namespace BaldiDevContentAPI.NPCs
 {
@@ -17,70 +19,25 @@ namespace BaldiDevContentAPI.NPCs
 		/// </summary>
 		/// <typeparam name="C"></typeparam>
 		/// <returns>Returns the new created NPC disabled and on DontDestroyOnLoad scene</returns>
-		public static C CreateNPC<C>(CustomNPCAttributes attributes) where C : NPC // Credits to the OldSport's mod menu code, half of it defines specifically what I need to make these npcs from scratch
+		private static C Internal_CreateNPC<C>(CustomNPCAttributes attributes) where C : NPC
 		{
-			var npc = new GameObject(attributes.Name,
-				typeof(C),
-				typeof(Navigator),
-				typeof(CharacterController),
-				typeof(ActivityModifier),
-				typeof(NavigatorDebugger),
-				typeof(Looker),
-				typeof(AudioManager),
-				typeof(AudioSource),
-				typeof(CapsuleCollider),
-				typeof(Rigidbody),
-				typeof(CustomNPC_DataHolder)
-			).GetComponent<C>();
+			var cloneBeans = (Beans)UnityEngine.Object.Instantiate(Character.Beans.GetFirstInstance());
 
-			npc.gameObject.SetActive(false); // Basic stuff
-			Object.DontDestroyOnLoad(npc.gameObject);
+			UnityEngine.Object.Destroy(cloneBeans.GetComponent<Animator>()); // Removes ANIMATOR
+
+			var npc = cloneBeans.gameObject.AddComponent<C>(); // Adds the actual necessary component
+
+			UnityEngine.Object.Destroy(cloneBeans); // Removes the Beans component
 
 			// Getting some variables held for usage
 
 			var looker = npc.GetComponent<Looker>();
 			var nav = npc.GetComponent<Navigator>();
-			var rigidBody = npc.GetComponent<Rigidbody>();
 			var col = npc.GetComponent<CapsuleCollider>();
 			var control = npc.GetComponent<CharacterController>();
 
-			// ------------- GameObject Setup Basically --------------
-			// Most of it is from OldSport's code, so here is the credit!
-
-
-			col.isTrigger = true; // Sets as a trigger duh
-			// Reminder: set capsule collider from attributes here
-
-			// Setup Character Control
-			control.slopeLimit = 0f;
-			control.stepOffset = 0f;
-			control.skinWidth = 0.0001f;
-			control.minMoveDistance = 0.001f;
-
-
-			// Setup Rigid Body
-			rigidBody.useGravity = false;
-			rigidBody.isKinematic = true;
-			rigidBody.constraints = RigidbodyConstraints.FreezeAll;
-			rigidBody.angularDrag = 0f;
-
-			npc.gameObject.tag = "NPC";
-			npc.gameObject.layer = LayerMask.NameToLayer("NPCs"); // DID THIS METHOD ALWAYS EXISTED?? OMG
-
-			// ----------- Setup Visual ----------
-
-			var spriteBase = new GameObject("SpriteBase");
-
-			var sprite = new GameObject("Sprite",
-				typeof(SpriteRenderer),
-				typeof(Billboard)
-			)
-			{
-				layer = LayerMask.NameToLayer("Billboard")
-			};
-
-			spriteBase.transform.SetParent(npc.transform);
-			sprite.transform.SetParent(spriteBase.transform); // As always, sprite inside a "spriteBase"
+			var spriteBase = npc.transform.GetChild(0);
+			var sprite = spriteBase.GetChild(0);
 
 			// ------------- Setup NPC Fields -------------
 
@@ -88,9 +45,9 @@ namespace BaldiDevContentAPI.NPCs
 			npc.looker = looker;
 
 			npc.spawnableRooms = attributes.SpawnableRooms;
-			npc.spriteBase = spriteBase;
+			npc.spriteBase = spriteBase.gameObject;
 			npc.spriteRenderer = new SpriteRenderer[] { sprite.GetComponent<SpriteRenderer>() };
-			npc.spriteRenderer[0].material = Character.Beans.GetFirstInstance().spriteRenderer[0].material; // Let's all trust this works
+
 
 			npc.ReflectionSetVariable("navigator", nav); // Refers the navigator
 
@@ -106,10 +63,6 @@ namespace BaldiDevContentAPI.NPCs
 			nav.ReflectionSetVariable("useHeatMap", attributes.UsesHeatMap);
 
 			// Setup Looker
-			looker.ReflectionSetVariable("layerMask", new LayerMask() 
-			{
-				value = LayerMask.GetMask("Default", "Player", "Windows", "Block Raycast") // Forgot an integer can't be a layer mask
-			}); // Another method I didn't know it existed
 			looker.ReflectionSetVariable("npc", npc);
 
 			// ---------- Final Touch ----------
@@ -121,32 +74,61 @@ namespace BaldiDevContentAPI.NPCs
 			npc.ReflectionSetVariable("character", attributes.Character);
 
 			looker.enabled = attributes.NeedsLooker;
-			npc.GetComponent<AudioManager>().audioDevice = npc.GetComponent<AudioSource>();
 
-			if (attributes.AvailableSprites.Length > 0)
-				sprite.GetComponent<SpriteRenderer>().sprite = attributes.AvailableSprites[0];
-
-			var holder = npc.GetComponent<CustomNPC_DataHolder>();
+			var holder = npc.gameObject.AddComponent<CustomNPC_Animator>();
 			holder.BaseAttributes = attributes;
 			holder.Npc = npc;
+			holder.renderer = sprite.GetComponent<SpriteRenderer>();
 
-			
+			npc.name = attributes.Name;
 
 			return npc;
 		}
 
+		/// <summary>
+		/// Creates the NPC given the <typeparamref name="C"/> as the NPC type for the mod's usage. 
+		/// <para>Reminder: they are enabled by default to not return errors since they are meant to be initialized by the generator.</para>
+		/// <para>It requires the <paramref name="attributes"/> to properly create the NPC</para>
+		/// <para></para>
+		/// </summary>
+		/// <typeparam name="C"></typeparam>
+		/// <returns>Returns the new created NPC disabled and on DontDestroyOnLoad scene</returns>
+		public static C CreateNPC<C>(CustomNPCAttributes attributes) where C : NPC
+		{
+			var npc = Internal_CreateNPC<C>(attributes);
+			npc.gameObject.SetActive(false); // Basic stuff
+			UnityEngine.Object.DontDestroyOnLoad(npc.gameObject);
+			return npc;
+		}
+
+		/// <summary>
+		/// Creates the NPC given the <typeparamref name="C"/> as the NPC type for the mod's usage. 
+		/// <para>Reminder: they are enabled by default</para>
+		/// <para>It requires the <paramref name="attributes"/> to properly create the NPC, with a <paramref name="ec"/> to not return errors and requires a <paramref name="spawnPoint"/></para>
+		/// <para></para>
+		/// </summary>
+		/// <typeparam name="C"></typeparam>
+		/// <returns>Returns the new created NPC on the current game with a set spawnPoint</returns>
+
+		public static C CreateNPC<C>(CustomNPCAttributes attributes, EnvironmentController ec, Vector3 spawnPoint) where C : NPC
+		{
+			if (ec == null)
+				throw new ArgumentNullException($"The EnvironmentController given had a null reference or wasn\'t set to an instance of an object");
+
+			var npc = Internal_CreateNPC<C>(attributes);
+
+			npc.ec = ec; // Sets Ec
+			ec.Npcs.Add(npc); // Adds npc to the Ec
+			npc.players = new List<PlayerManager>(UnityEngine.Object.FindObjectsOfType<PlayerManager>()); // Since it is during runtime, it also need the players
+			npc.GetComponent<Navigator>().ec = ec;
+			npc.transform.SetParent(ec.transform);
+
+			npc.transform.position = spawnPoint;
+
+			return npc;
+
+		}
 
 
-
-		/* This code is for later
-			 if (ec != null)
-			{
-				npc.ec = ec; // Sets Ec
-				ec.Npcs.Add(npc); // Adds npc to the Ec
-				npc.players = new List<PlayerManager>(Object.FindObjectsOfType<PlayerManager>()); // Since it is during runtime, it also need the players
-			}
-			if (ec != null) // If it isn't null, give the ec already
-						nav.ec = ec;
-		*/
 	}
 }

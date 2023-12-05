@@ -2,96 +2,135 @@
 using UnityEngine;
 using MTM101BaldAPI;
 using BaldiDevContentAPI.Misc;
+using System.Linq;
+using static Rewired.ComponentControls.Effects.RotateAroundAxis;
 
 namespace BaldiDevContentAPI.NPCs
 {
 	/// <summary>
 	/// Holds all the essential data from your NPC to be used in CreateNPC()
-	/// <para>Note: All the fields are required by the constructor</para>
+	/// <para>Note: Highly recommended to use CreateAttribute() to set all fields</para>
 	/// </summary>
-	public struct CustomNPCAttributes
+	public class CustomNPCAttributes : ScriptableObject
 	{
 		/// <summary>
 		/// Holds all the essential data from your NPC to be used in CreateNPC()
-		/// <para>Note: All the fields are required by the constructor</para>
-		/// <para><paramref name="name"/> is the name of the NPC (that also includes to the Character enum of it), <paramref name="spawnableRooms"/> are the rooms it can spawn, <paramref name="colliderRadius"/> is how large are their collider</para>
-		/// <para><paramref name="availableSprites"/> are all the sprites the npc will need, <paramref name="ignoreBelts"/> if it wants to ignore belts (like Baldi), <paramref name="ignorePlayerSpawn"/> if it spawns instantly (like Gotta Sweep), <paramref name="keepLookerEnabled"/> if you want the looker component to be enabled (is disabled by characters like Chalkles, since it is unused), <paramref name="poster"/> is the NPC's poster</para>
-		/// <para><paramref name="canEnterRooms"/> if the NPC is able to get inside rooms, <paramref name="usesHeatMap"/> for NPCs who wandersRound (like Principal)</para>
 		/// </summary>
-		public CustomNPCAttributes(string name, List<RoomCategory> spawnableRooms, float colliderRadius, Sprite[] availableSprites, bool ignoreBelts, bool ignorePlayerSpawn, bool keepLookerEnabled, PosterObject poster, bool canEnterRooms, bool usesHeatMap)
+		public static CustomNPCAttributes CreateAttribute(string name, List<RoomCategory> spawnableRooms, Dictionary<string, Sprite[]> availableSprites, PosterObject poster, bool usesHeatMap)
 		{
-			Name = name;
-			Character = EnumExtensions.ExtendEnum<Character>(name);
-			SpawnableRooms = spawnableRooms;
-			ColliderRadius = colliderRadius;
-			AvailableSprites = availableSprites;
-			IgnoreBelts = ignoreBelts;
-			IgnorePlayerOnSpawn = ignorePlayerSpawn;
-			NeedsLooker = keepLookerEnabled;
-			CanEnterRooms = canEnterRooms;
-			UsesHeatMap = usesHeatMap;
+			var attribute = CreateInstance<CustomNPCAttributes>();
 
-			Poster = poster;
+			attribute.Name = name;
+			attribute.Character = EnumExtensions.ExtendEnum<Character>(name);
+			attribute.SpawnableRooms = spawnableRooms;
+			attribute.AvailableSprites = availableSprites;
+			attribute.UsesHeatMap = usesHeatMap;
+
+			attribute.Poster = poster;
+
+			attribute.name = $"{name}_Attributes";
+
+			return attribute;
 		}
 
 		/// <summary>
-		/// Holds all the essential data from your NPC to be used in CreateNPC()
-		/// <para>Note: All the fields are required by the constructor</para>
-		/// <para><paramref name="name"/> is the name of the NPC (that also includes to the Character enum of it), <paramref name="spawnableRooms"/> are the rooms it can spawn, <paramref name="colliderRadius"/> is how large are their collider</para>
-		/// <para><paramref name="availableSprites"/> are all the sprites the npc will need, <paramref name="ignoreBelts"/> if it wants to ignore belts (like Baldi), <paramref name="ignorePlayerSpawn"/> if it spawns instantly (like Gotta Sweep), <paramref name="keepLookerEnabled"/> if you want the looker component to be enabled (is disabled by characters like Chalkles, since it is unused)</para>
-		/// <para><paramref name="canEnterRooms"/> if the NPC is able to get inside rooms, <paramref name="usesHeatMap"/> for NPCs who wandersRound (like Principal)</para>
-		/// <para><paramref name="posterNameKey"/> is the NPC's name in the poster, <paramref name="posterDescKey"/> is the NPC's description in the poster, <paramref name="posterVisual"/> for the visual of the poster</para>
+		/// Name of the NPC
 		/// </summary>
-		public CustomNPCAttributes(string name, List<RoomCategory> spawnableRooms, float colliderRadius, Sprite[] availableSprites, bool ignoreBelts, bool ignorePlayerSpawn, bool keepLookerEnabled, string posterNameKey, string posterDescKey, Texture2D posterVisual, bool canEnterRooms, bool usesHeatMap)
-		{
-			Name = name;
-			Character = EnumExtensions.ExtendEnum<Character>(name);
-			SpawnableRooms = spawnableRooms;
-			ColliderRadius = colliderRadius;
-			AvailableSprites = availableSprites;
-			IgnoreBelts = ignoreBelts;
-			IgnorePlayerOnSpawn = ignorePlayerSpawn;
-			NeedsLooker = keepLookerEnabled;
-			CanEnterRooms = canEnterRooms;
-			UsesHeatMap = usesHeatMap;
+		public string Name { get; set; } = "CustomNPC";
 
-			var data = PosterUtilities.CopyPosterTextData(Character.Beans.GetFirstInstance().Poster.textData);
-			data[0].textKey = posterNameKey;
-			data[1].textKey = posterDescKey;
+		/// <summary>
+		/// The Character Enum of the NPC
+		/// </summary>
+		public Character Character { get; set; } = Character.Null;
 
-			Poster = ObjectCreatorHandlers.CreatePosterObject(posterVisual, data);
-		}
-
-		public string Name { get; set; }
-
-		public Character Character { get; set; }
-
-		public List<RoomCategory> SpawnableRooms { get; set; }
-
-		public float ColliderRadius { get; set; }
-
-		public Sprite[] AvailableSprites { get; set; }
-
-		public bool CanEnterRooms { get; set; }
-
-		public bool UsesHeatMap { get; set; }
-
-		public bool IgnoreBelts { get; set; }
-
-		public bool IgnorePlayerOnSpawn { get; set; }
-
-		public bool NeedsLooker { get; set; }
-
-		public PosterObject Poster { get; set; }
+		/// <summary>
+		/// All the rooms the NPC is able of spawning at
+		/// </summary>
+		public List<RoomCategory> SpawnableRooms { get; set; } = new List<RoomCategory>();
+		/// <summary>
+		/// The collider radius of the NPC (default is 3)
+		/// </summary>
+		public float ColliderRadius { get; set; } = 3f;
+		/// <summary>
+		/// All the sprites the NPC will use along side their keys (animations)
+		/// </summary>
+		public Dictionary<string, Sprite[]> AvailableSprites { get; set; } = new Dictionary<string, Sprite[]>();
+		/// <summary>
+		/// If the NPC is able to enter inside rooms
+		/// </summary>
+		public bool CanEnterRooms { get; set; } = false;
+		/// <summary>
+		/// If the NPC uses the WanderRound() method, this must be set to true
+		/// </summary>
+		public bool UsesHeatMap { get; set; } = false;
+		/// <summary>
+		/// If the NPC ignores being pushed by belts (Baldi for example)
+		/// </summary>
+		public bool IgnoreBelts { get; set; } = false;
+		/// <summary>
+		/// If the NPC instantly spawns (like Gotta Sweep)
+		/// </summary>
+		public bool IgnorePlayerOnSpawn { get; set; } = false;
+		/// <summary>
+		/// If the NPC needs the Looker component enabled (Chalkles don't need it, becoming disabled by default)
+		/// </summary>
+		public bool NeedsLooker { get; set; } = true;
+		/// <summary>
+		/// The Office's Poster of the Character
+		/// </summary>
+		public PosterObject Poster { get; set; } = default;
 	}
 	/// <summary>
 	/// This will be automatically added to your NPC upon using CreateNPC()
 	/// <para>Basically it'll hold some basic data that can't be normally held by the NPC class</para>
 	/// </summary>
-	public class CustomNPC_DataHolder : MonoBehaviour
+	public class CustomNPC_Animator : MonoBehaviour
 	{
-		public CustomNPCAttributes BaseAttributes = default;
+		public CustomNPCAttributes BaseAttributes;
 
 		public NPC Npc;
+
+		public SpriteRenderer renderer;
+
+		public string CurrentAnimation { get; private set; } = string.Empty;
+
+		float animationTimer = 0f, animatorSpeed = 1f;
+
+		Sprite[] animationSet = new Sprite[0];
+
+		private void Update()
+		{
+			if (Npc == null || renderer == null || BaseAttributes == null || animationSet.Length == 0)
+				return;
+
+			animationTimer += Npc.ec.NpcTimeScale * Time.deltaTime * animatorSpeed;
+			int num = Mathf.FloorToInt(animationTimer);
+			if (num >= animationSet.Length)
+			{
+				num = 0;
+				animationTimer = 0f;
+			}
+
+			
+			renderer.sprite = animationSet[num];
+
+			
+
+		}
+
+		public float AnimationSpeed { get => animatorSpeed; set => animatorSpeed = Mathf.Max(0f, value); }
+
+		public void SetAnimation(string animation)
+		{
+			UnityEngine.Debug.Log(animation);
+			if (BaseAttributes.AvailableSprites.ContainsKey(animation))
+			{
+				CurrentAnimation = animation;
+				animationSet = BaseAttributes.AvailableSprites[animation];
+				renderer.sprite = animationSet[0];
+				animationTimer = 0f;
+			}
+
+		}
 	}
 }

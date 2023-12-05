@@ -28,12 +28,15 @@ namespace BaldiDevContentAPI
 
 			LoadingEvents.RegisterOnAssetsLoaded(() =>
 			{
-				hihiha.Add("F1", NPCCreatorHelper.CreateNPC<WheelChair>(new CustomNPCAttributes("WheelChair",
-					RoomUtilities.AllRooms.ToList(),
-					3.5f,
-					new Sprite[] { AssetManager.SpriteFromTexture2D(AssetManager.TextureFromMod(this, Path.Combine("npc", "template", "officechair.png")), new Vector2(0.5f, 0.5f), 50) }, false, true, true,
-					"PST_OFC_Name", "PST_OFC_Desc",
-					AssetManager.TextureFromMod(this, Path.Combine("npc", "template", "pri_ofc.png")), true, false)));
+				string npcTemplatePath = Path.Combine(ModPath, "npc", "template");
+
+				var attributes = CustomNPCAttributes.CreateAttribute("WheelChair", RoomUtilities.AllRooms.ToList(), 
+					NPCUtilities.CreateAnimationSprites("normal", 50, Path.Combine(npcTemplatePath, "stronado_normal1.png"), Path.Combine(npcTemplatePath, "stronado_normal2.png")),
+					PosterUtilities.CreateDefaultNPCPosterObject("PST_OFC_Name", "PST_OFC_Desc", AssetManager.TextureFromFile(Path.Combine(npcTemplatePath, "pri_ofc.png"))),
+					false
+					);
+
+				hihiha.Add("F1", NPCCreatorHelper.CreateNPC<WheelChair>(attributes));
 			}, false);
 
 			GeneratorManagement.Register(this, GenerationModType.Addend, (string floorName, int levelNo, LevelObject ld) =>
@@ -54,7 +57,7 @@ namespace BaldiDevContentAPI
 
 		}
 
-		static Dictionary<string, NPC> hihiha = new Dictionary<string, NPC>();
+		readonly static Dictionary<string, NPC> hihiha = new Dictionary<string, NPC>();
 
 		public static string ModPath { get; private set; }
 	}
