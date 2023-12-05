@@ -80,7 +80,7 @@ namespace BaldiDevContentAPI.NPCs
 	}
 	/// <summary>
 	/// This will be automatically added to your NPC upon using CreateNPC()
-	/// <para>Basically it'll hold some basic data that can't be normally held by the NPC class</para>
+	/// <para>Basically it'll replace the usual Animator with an usable one for newly created NPCs</para>
 	/// </summary>
 	public class CustomNPC_Animator : MonoBehaviour
 	{

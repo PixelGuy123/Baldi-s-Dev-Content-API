@@ -36,6 +36,7 @@ namespace BaldiDevContentAPI
 					false
 					);
 
+				AttributesMade.Add(attributes);
 				hihiha.Add("F1", NPCCreatorHelper.CreateNPC<WheelChair>(attributes));
 			}, false);
 
@@ -58,6 +59,8 @@ namespace BaldiDevContentAPI
 		}
 
 		readonly static Dictionary<string, NPC> hihiha = new Dictionary<string, NPC>();
+
+		readonly static List<CustomNPCAttributes> AttributesMade = new List<CustomNPCAttributes>(); // This is to make npcs during the game, so I can just re-use the info inside here (Only for UE)
 
 		public static string ModPath { get; private set; }
 	}
