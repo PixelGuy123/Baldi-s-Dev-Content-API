@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using MTM101BaldAPI;
+using MonoMod.Utils;
 
 namespace BaldiDevContentAPI.NPCs
 {
@@ -8,74 +9,74 @@ namespace BaldiDevContentAPI.NPCs
 	/// Holds all the essential data from your NPC to be used in CreateNPC()
 	/// <para>Note: Highly recommended to use CreateAttribute() to set all fields</para>
 	/// </summary>
-	public class CustomNPCAttributes : ScriptableObject
+	public struct CustomNPCAttributes
 	{
 		/// <summary>
-		/// Holds all the essential data from your NPC to be used in CreateNPC()
+		/// Holds all the essential data from your NPC to be used in CreateNPC();
+		///<para>Read each field to know their info.</para>
 		/// </summary>
-		public static CustomNPCAttributes CreateAttribute(string name, List<RoomCategory> spawnableRooms, Dictionary<string, Sprite[]> availableSprites, PosterObject poster, bool usesHeatMap)
+		public CustomNPCAttributes(string name, List<RoomCategory> spawnableRooms, Dictionary<string, Sprite[]> availableSprites, PosterObject poster, bool usesHeatMap = false, float colliderRadius = 3f, bool canEnterRooms = false, bool ignoreBelts = false, bool ignorePlayerOnSpawn = false, bool needsLooker = false)
 		{
-			var attribute = CreateInstance<CustomNPCAttributes>();
+			Name = name;
+			Character = EnumExtensions.ExtendEnum<Character>(name);
+			SpawnableRooms = spawnableRooms;
+			AvailableSprites = availableSprites;
+			UsesHeatMap = usesHeatMap;
+			ColliderRadius = colliderRadius;
+			CanEnterRooms = canEnterRooms;
+			IgnoreBelts = ignoreBelts;
+			IgnorePlayerOnSpawn = ignorePlayerOnSpawn;
+			NeedsLooker = needsLooker;
 
-			attribute.Name = name;
-			attribute.Character = EnumExtensions.ExtendEnum<Character>(name);
-			attribute.SpawnableRooms = spawnableRooms;
-			attribute.AvailableSprites = availableSprites;
-			attribute.UsesHeatMap = usesHeatMap;
-
-			attribute.Poster = poster;
-
-			attribute.name = $"{name}_Attributes";
-
-			return attribute;
+			Poster = poster;
 		}
 
 		/// <summary>
 		/// Name of the NPC
 		/// </summary>
-		public string Name { get; set; } = "CustomNPC";
+		public string Name { get; set; }
 
 		/// <summary>
 		/// The Character Enum of the NPC
 		/// </summary>
-		public Character Character { get; set; } = Character.Null;
+		public Character Character { get; set; }
 
 		/// <summary>
 		/// All the rooms the NPC is able of spawning at
 		/// </summary>
-		public List<RoomCategory> SpawnableRooms { get; set; } = new List<RoomCategory>();
+		public List<RoomCategory> SpawnableRooms { get; set; }
 		/// <summary>
 		/// The collider radius of the NPC (default is 3)
 		/// </summary>
-		public float ColliderRadius { get; set; } = 3f;
+		public float ColliderRadius { get; set; }
 		/// <summary>
 		/// All the sprites the NPC will use along side their keys (animations)
 		/// </summary>
-		public Dictionary<string, Sprite[]> AvailableSprites { get; set; } = new Dictionary<string, Sprite[]>();
+		public Dictionary<string, Sprite[]> AvailableSprites { get; set; }
 		/// <summary>
 		/// If the NPC is able to enter inside rooms
 		/// </summary>
-		public bool CanEnterRooms { get; set; } = false;
+		public bool CanEnterRooms { get; set; }
 		/// <summary>
 		/// If the NPC uses the WanderRound() method, this must be set to true
 		/// </summary>
-		public bool UsesHeatMap { get; set; } = false;
+		public bool UsesHeatMap { get; set; }
 		/// <summary>
 		/// If the NPC ignores being pushed by belts (Baldi for example)
 		/// </summary>
-		public bool IgnoreBelts { get; set; } = false;
+		public bool IgnoreBelts { get; set; }
 		/// <summary>
 		/// If the NPC instantly spawns (like Gotta Sweep)
 		/// </summary>
-		public bool IgnorePlayerOnSpawn { get; set; } = false;
+		public bool IgnorePlayerOnSpawn { get; set; }
 		/// <summary>
 		/// If the NPC needs the Looker component enabled (Chalkles don't need it, becoming disabled by default)
 		/// </summary>
-		public bool NeedsLooker { get; set; } = true;
+		public bool NeedsLooker { get; set; }
 		/// <summary>
 		/// The Office's Poster of the Character
 		/// </summary>
-		public PosterObject Poster { get; set; } = default;
+		public PosterObject Poster { get; set; }
 	}
 	/// <summary>
 	/// This will be automatically added to your NPC upon using CreateNPC()
@@ -83,8 +84,6 @@ namespace BaldiDevContentAPI.NPCs
 	/// </summary>
 	public class CustomNPC_Animator : MonoBehaviour
 	{
-		public CustomNPCAttributes BaseAttributes;
-
 		public NPC Npc;
 
 		public SpriteRenderer renderer;
@@ -95,9 +94,11 @@ namespace BaldiDevContentAPI.NPCs
 
 		Sprite[] animationSet = new Sprite[0];
 
+		readonly Dictionary<string, Sprite[]> animations = new Dictionary<string, Sprite[]>();
+
 		private void Update() // Animator basically
 		{
-			if (Npc == null || renderer == null || BaseAttributes == null || animationSet.Length == 0)
+			if (Npc == null || renderer == null || animationSet.Length == 0)
 				return;
 
 			animationTimer += Npc.ec.NpcTimeScale * Time.deltaTime * animatorSpeed;
@@ -119,14 +120,20 @@ namespace BaldiDevContentAPI.NPCs
 
 		public void SetAnimation(string animation)
 		{
-			if (BaseAttributes.AvailableSprites.ContainsKey(animation))
+			if (animations.ContainsKey(animation))
 			{
 				CurrentAnimation = animation;
-				animationSet = BaseAttributes.AvailableSprites[animation];
+				animationSet = animations[animation];
 				renderer.sprite = animationSet[0];
 				animationTimer = 0f;
 			}
 
+		}
+
+		public void SetupAnimations(Dictionary<string, Sprite[]> anims)
+		{
+			animations.Clear();
+			animations.AddRange(anims);
 		}
 	}
 }

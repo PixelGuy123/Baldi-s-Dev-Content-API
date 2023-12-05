@@ -76,9 +76,9 @@ namespace BaldiDevContentAPI.NPCs
 			looker.enabled = attributes.NeedsLooker;
 
 			var holder = npc.gameObject.AddComponent<CustomNPC_Animator>();
-			holder.BaseAttributes = attributes;
 			holder.Npc = npc;
 			holder.renderer = sprite.GetComponent<SpriteRenderer>();
+			holder.SetupAnimations(attributes.AvailableSprites);
 
 			npc.name = attributes.Name;
 

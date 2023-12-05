@@ -30,7 +30,7 @@ namespace BaldiDevContentAPI
 			{
 				string npcTemplatePath = Path.Combine(ModPath, "npc", "template"); // Templates
 
-				var attributes = CustomNPCAttributes.CreateAttribute("WheelChair", RoomUtilities.AllRooms.ToList(), 
+				var attributes = new CustomNPCAttributes("WheelChair", RoomUtilities.AllRooms.ToList(), 
 					NPCUtilities.CreateAnimationSprites("normal", 50, Path.Combine(npcTemplatePath, "stronado_normal1.png"), Path.Combine(npcTemplatePath, "stronado_normal2.png")),
 					PosterUtilities.CreateDefaultNPCPosterObject("PST_OFC_Name", "PST_OFC_Desc", AssetManager.TextureFromFile(Path.Combine(npcTemplatePath, "pri_ofc.png"))),
 					false
