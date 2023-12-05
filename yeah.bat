@@ -1,1 +1,0 @@
-copy /y "C:\Users\JV\OneDrive\Documentos\GitHub\Baldi's Dev Content API\bin\Debug\netstandard2.1\Baldi's Dev Content API.dll" "C:\Program Files (x86)\Steam\steamapps\common\Baldi's Basics Plus\BepInEx\plugins"
