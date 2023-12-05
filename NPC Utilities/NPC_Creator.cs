@@ -78,7 +78,9 @@ namespace BaldiDevContentAPI.NPCs
 			var holder = npc.gameObject.AddComponent<CustomNPC_Animator>();
 			holder.Npc = npc;
 			holder.renderer = sprite.GetComponent<SpriteRenderer>();
-			holder.SetupAnimations(attributes.AvailableSprites);
+			var anims = ScriptableObject.CreateInstance<CustomNPC_Animator.AnimationsHolder>();
+			anims.Animations = new Dictionary<string, Sprite[]>(attributes.AvailableSprites);
+			holder.Animations = anims;
 
 			npc.name = attributes.Name;
 

@@ -2,6 +2,7 @@
 using UnityEngine;
 using MTM101BaldAPI;
 using MonoMod.Utils;
+using System.Linq;
 
 namespace BaldiDevContentAPI.NPCs
 {
@@ -84,17 +85,35 @@ namespace BaldiDevContentAPI.NPCs
 	/// </summary>
 	public class CustomNPC_Animator : MonoBehaviour
 	{
+		/// <summary>
+		/// The NPC Field (DON'T touch it, you won't need it)
+		/// </summary>
 		public NPC Npc;
-
+		/// <summary>
+		/// The Renderer (DON'T touch it, you won't need it)
+		/// </summary>
 		public SpriteRenderer renderer;
-
+		/// <summary>
+		/// The current animation being played in the animator
+		/// </summary>
 		public string CurrentAnimation { get; private set; } = string.Empty;
+
+		/// <summary>
+		/// The animation speed
+		/// </summary>
+		public float AnimationSpeed { get => animatorSpeed; set => animatorSpeed = Mathf.Max(0f, value); } // Sets the animation speed here
 
 		float animationTimer = 0f, animatorSpeed = 1f;
 
 		Sprite[] animationSet = new Sprite[0];
-
-		readonly Dictionary<string, Sprite[]> animations = new Dictionary<string, Sprite[]>();
+		/// <summary>
+		/// Here are the animations stored in a ScriptableObject (DON'T touch it, you won't need it)
+		/// </summary>
+		public AnimationsHolder Animations; // Omg, I had to make it public to not forget the reference, wtf. I hate this workaround with ScriptableObjects
+		/// <summary>
+		/// Gets all animations available in the Animator
+		/// </summary>
+		public string[] AllAnimations => Animations.Animations.Keys.ToArray();
 
 		private void Update() // Animator basically
 		{
@@ -116,24 +135,29 @@ namespace BaldiDevContentAPI.NPCs
 
 		}
 
-		public float AnimationSpeed { get => animatorSpeed; set => animatorSpeed = Mathf.Max(0f, value); } // Sets the animation speed here
-
-		public void SetAnimation(string animation)
+		/// <summary>
+		/// Sets the <paramref name="animation"/> by the name
+		/// </summary>
+		/// <param name="animation"></param>
+		/// <returns>If it finds the animation, it returns True, otherwise False.</returns>
+		public bool SetAnimation(string animation) // Safely sets the animation
 		{
-			if (animations.ContainsKey(animation))
+			if (Animations.Animations.ContainsKey(animation))
 			{
 				CurrentAnimation = animation;
-				animationSet = animations[animation];
+				animationSet = Animations.Animations[animation];
 				renderer.sprite = animationSet[0];
 				animationTimer = 0f;
+				return true;
 			}
+			return false;
 
 		}
 
-		public void SetupAnimations(Dictionary<string, Sprite[]> anims)
+		public class AnimationsHolder : ScriptableObject // Yeah, to store this single field, the others aren't necessary since the npcs can do themselves in initialization
 		{
-			animations.Clear();
-			animations.AddRange(anims);
+			public Dictionary<string, Sprite[]> Animations = new Dictionary<string, Sprite[]>();
 		}
+
 	}
 }
