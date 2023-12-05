@@ -49,7 +49,7 @@ namespace BaldiDevContentAPI.Misc
 		/// <param name="posterDescKey"></param>
 		/// <param name="posterVisual"></param>
 		/// <returns></returns>
-		public static PosterObject CreateDefaultNPCPosterObject(string posterNameKey, string posterDescKey, Texture2D posterVisual)
+		public static PosterObject CreateDefaultNPCPosterObject(string posterNameKey, string posterDescKey, Texture2D posterVisual) // Yeah, literally that
 		{
 			var data = CopyPosterTextData(Character.Beans.GetFirstInstance().Poster.textData);
 			data[0].textKey = posterNameKey;
@@ -71,7 +71,7 @@ namespace BaldiDevContentAPI.Misc
 		/// </summary>
 		/// <param name="pixelsPerUnit"></param>
 		/// <returns></returns>
-		public static Dictionary<string, Sprite[]> CreateAnimationSprites(string animationName, float pixelsPerUnit, params string[] paths)
+		public static Dictionary<string, Sprite[]> CreateAnimationSprites(string animationName, float pixelsPerUnit, params string[] paths) // Hopefully this makes the code to create these dictionaries shorter
 		{
 			var sprites = new List<Sprite>();
 			foreach (var path in paths)

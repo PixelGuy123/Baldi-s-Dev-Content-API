@@ -28,7 +28,7 @@ namespace BaldiDevContentAPI
 
 			LoadingEvents.RegisterOnAssetsLoaded(() =>
 			{
-				string npcTemplatePath = Path.Combine(ModPath, "npc", "template");
+				string npcTemplatePath = Path.Combine(ModPath, "npc", "template"); // Templates
 
 				var attributes = CustomNPCAttributes.CreateAttribute("WheelChair", RoomUtilities.AllRooms.ToList(), 
 					NPCUtilities.CreateAnimationSprites("normal", 50, Path.Combine(npcTemplatePath, "stronado_normal1.png"), Path.Combine(npcTemplatePath, "stronado_normal2.png")),

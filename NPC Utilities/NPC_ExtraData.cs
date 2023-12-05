@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using MTM101BaldAPI;
-using BaldiDevContentAPI.Misc;
-using System.Linq;
-using static Rewired.ComponentControls.Effects.RotateAroundAxis;
 
 namespace BaldiDevContentAPI.NPCs
 {
@@ -98,7 +95,7 @@ namespace BaldiDevContentAPI.NPCs
 
 		Sprite[] animationSet = new Sprite[0];
 
-		private void Update()
+		private void Update() // Animator basically
 		{
 			if (Npc == null || renderer == null || BaseAttributes == null || animationSet.Length == 0)
 				return;
@@ -118,11 +115,10 @@ namespace BaldiDevContentAPI.NPCs
 
 		}
 
-		public float AnimationSpeed { get => animatorSpeed; set => animatorSpeed = Mathf.Max(0f, value); }
+		public float AnimationSpeed { get => animatorSpeed; set => animatorSpeed = Mathf.Max(0f, value); } // Sets the animation speed here
 
 		public void SetAnimation(string animation)
 		{
-			UnityEngine.Debug.Log(animation);
 			if (BaseAttributes.AvailableSprites.ContainsKey(animation))
 			{
 				CurrentAnimation = animation;
