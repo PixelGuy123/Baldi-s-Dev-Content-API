@@ -4,11 +4,9 @@ using HarmonyLib;
 using MTM101BaldAPI.Registers;
 using BaldiDevContentAPI.NPCs;
 using MTM101BaldAPI.AssetManager;
-using BaldiDevContentAPI.NPCs.Templates;
-using BaldiDevContentAPI.Misc;
-using System.Linq;
-using System.IO;
 using System.Collections.Generic;
+using System.Linq;
+using TMPro;
 
 namespace BaldiDevContentAPI
 {
@@ -28,33 +26,11 @@ namespace BaldiDevContentAPI
 
 			LoadingEvents.RegisterOnAssetsLoaded(() =>
 			{
-				string npcTemplatePath = Path.Combine(ModPath, "npc", "template"); // Templates
+				var pickMode = FindObjectsOfType<CursorInitiator>(true).First(c => c.name == "PickMode");
+				pickMode.transform.Find("MainNew").GetComponent<TextLocalizer>().key = "MyName69"; // Here's the key, I put MyName69 since invalid keys just return themselves by default
+				pickMode.transform.Find("MainContinue").GetComponent<TextLocalizer>().key = "MyName69";
 
-				var attributes = new CustomNPCAttributes("WheelChair", RoomUtilities.AllRooms.ToList(), 
-					NPCUtilities.CreateAnimationSprites("normal", 50, Path.Combine(npcTemplatePath, "stronado_normal1.png"), Path.Combine(npcTemplatePath, "stronado_normal2.png")),
-					PosterUtilities.CreateDefaultNPCPosterObject("PST_OFC_Name", "PST_OFC_Desc", AssetManager.TextureFromFile(Path.Combine(npcTemplatePath, "pri_ofc.png"))),
-					false
-					);
-
-				AttributesMade.Add(attributes);
-				hihiha.Add("F1", NPCCreatorHelper.CreateNPC<WheelChair>(attributes));
 			}, false);
-
-			GeneratorManagement.Register(this, GenerationModType.Addend, (string floorName, int levelNo, LevelObject ld) =>
-			{
-				foreach (var pair in hihiha)
-				{
-					if (pair.Key == floorName)
-					{
-						ld.potentialNPCs.Add(new WeightedNPC()
-						{
-							weight = 1000,
-							selection = pair.Value
-						});
-						
-					}
-				}
-			});
 
 		}
 
