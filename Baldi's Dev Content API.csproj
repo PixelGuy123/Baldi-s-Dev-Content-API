@@ -63,6 +63,12 @@
     <Reference Include="NavMeshComponents">
       <HintPath>Dependencies\NavMeshComponents.dll</HintPath>
     </Reference>
+    <Reference Include="PlusLevelFormat">
+      <HintPath>Dependencies\PlusLevelFormat.dll</HintPath>
+    </Reference>
+    <Reference Include="PlusLevelLoader">
+      <HintPath>Dependencies\PlusLevelLoader.dll</HintPath>
+    </Reference>
     <Reference Include="Rewired_Core">
       <HintPath>Dependencies\Rewired_Core.dll</HintPath>
     </Reference>
@@ -327,10 +333,6 @@
     <Reference Include="UnityEngine.XRModule">
       <HintPath>Dependencies\UnityEngine.XRModule.dll</HintPath>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Item Utilities\Templates\" />
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">

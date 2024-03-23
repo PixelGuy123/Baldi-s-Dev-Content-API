@@ -1,12 +1,13 @@
-﻿using UnityEngine;
-using BepInEx;
+﻿using BepInEx;
 using HarmonyLib;
+using MTM101BaldAPI.AssetTools;
 using MTM101BaldAPI.Registers;
-using BaldiDevContentAPI.NPCs;
-using MTM101BaldAPI.AssetManager;
+using PlusLevelLoader;
+using PlusLevelFormat;
+using System.IO;
+using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
+using System.Net;
 
 namespace BaldiDevContentAPI
 {
@@ -20,23 +21,70 @@ namespace BaldiDevContentAPI
 
 			Logger.LogInfo($"{ModInfo.ModName} {ModInfo.ModVersion} has been initialized! Made by PixelGuy");
 
-			ModPath = AssetManager.GetModPath(this);
+			ModPath = AssetLoader.GetModPath(this);
 
 			harmony.PatchAll();
 
+			
+
+			string path = Path.Combine(ModPath, "room.cbld");
+			if (!File.Exists(path))
+			{
+				Debug.LogWarning("BALDIDEVAPI: Failed to grab room data as it doesn't exist");
+				return;
+			}
+
+			
+
 			LoadingEvents.RegisterOnAssetsLoaded(() =>
 			{
-				var pickMode = FindObjectsOfType<CursorInitiator>(true).First(c => c.name == "PickMode");
-				pickMode.transform.Find("MainNew").GetComponent<TextLocalizer>().key = "MyName69"; // Here's the key, I put MyName69 since invalid keys just return themselves by default
-				pickMode.transform.Find("MainContinue").GetComponent<TextLocalizer>().key = "MyName69";
+				using var binaryStream = new BinaryReader(File.OpenRead(path));
+				{
+					level = binaryStream.ReadLevel();
+					var obj = CustomLevelLoader.LoadLevel(level);
 
+					asset = obj.levelAsset;
+
+					for (int i = 0; i < obj.levelAsset.rooms.Count; i++)
+					{
+						var room = obj.levelAsset.rooms[i];
+						if (room.category != RoomCategory.Class)
+							continue;
+						
+						var asset = ScriptableObject.CreateInstance<RoomAsset>();
+						if (room.activity == null)
+						{
+							room.activity = new ActivityData();
+							room.hasActivity = false;
+						}
+						room.ConvertToAsset(asset, new IntVector2(0, 0));
+						foreach (var c in obj.levelAsset.tile)
+						{
+							if (c.roomId == i)
+								asset.cells.Add(c);
+						}
+						rooms.Add(asset);
+					}
+					
+				}
 			}, false);
 
+			GeneratorManagement.Register(this, GenerationModType.Base, (name, num, ld) =>
+			{
+				if (name == "F1")
+				{
+					ld.potentialClassRooms = ld.potentialClassRooms.AddRangeToArray(rooms.ConvertAll(x => new WeightedRoomAsset() { selection = x, weight = 999 }).ToArray());
+				}
+			});
+
+			
 		}
 
-		readonly static Dictionary<string, NPC> hihiha = new Dictionary<string, NPC>();
+		static Level level;
 
-		readonly static List<CustomNPCAttributes> AttributesMade = new List<CustomNPCAttributes>(); // This is to make npcs during the game, so I can just re-use the info inside here (Only for UE)
+		readonly List<RoomAsset> rooms = new List<RoomAsset>();
+
+		static LevelAsset asset;
 
 		public static string ModPath { get; private set; }
 	}

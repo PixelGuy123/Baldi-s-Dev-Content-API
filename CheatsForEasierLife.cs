@@ -1,13 +1,10 @@
 ﻿using HarmonyLib;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using TMPro;
 
-namespace BaldiDevContentAPI.Debug
+namespace BaldiDevContentAPI
 {
-	[HarmonyPatch(typeof(Baldi))]
-	[HarmonyPatch("OnTriggerEnter")]
+	[HarmonyPatch(typeof(Baldi_Chase))]
+	[HarmonyPatch("OnStateTriggerStay")]
 	internal class Baldistop
 	{
 		static bool Prefix() // No ded
@@ -33,6 +30,18 @@ namespace BaldiDevContentAPI.Debug
 				}
 				yield return instruction;
 			}
+		}
+	}
+
+	[HarmonyPatch(typeof(PlayerMovement))]
+	internal class KeyCheats
+	{
+		[HarmonyPatch("Start")]
+		[HarmonyPostfix]
+		private static void Speed(PlayerMovement __instance)
+		{
+			__instance.runSpeed *= 3;
+			__instance.walkSpeed *= 3;
 		}
 	}
 
