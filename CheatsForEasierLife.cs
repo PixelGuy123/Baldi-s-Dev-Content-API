@@ -40,8 +40,6 @@ namespace BaldiDevContentAPI
 		[HarmonyPostfix]
 		private static void Speed(PlayerMovement __instance)
 		{
-			__instance.runSpeed *= 3;
-			__instance.walkSpeed *= 3;
 		}
 	}
 
